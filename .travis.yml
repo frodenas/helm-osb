@@ -1,0 +1,5 @@
+language: go
+
+go_import_path: github.com/frodenas/helm-osb
+
+script: make test
