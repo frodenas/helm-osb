@@ -13,12 +13,14 @@ import (
 )
 
 const (
-	contextLogKey       = "context"
-	instanceIDLogKey    = "instance-id"
-	bindingIDLogKey     = "binding-id"
-	detailsLogKey       = "details"
-	asyncAllowedLogKey  = "async-allowed"
-	operationDataLogKey = "operation-data"
+	contextLogKey                = "context"
+	instanceIDLogKey             = "instance-id"
+	bindingIDLogKey              = "binding-id"
+	detailsLogKey                = "details"
+	asyncAllowedLogKey           = "async-allowed"
+	operationDataLogKey          = "operation-data"
+	provisionedServiceSpecLogKey = "provisioned-service-spec"
+	deprovisionServiceSpecLogKey = "deprovision-service-spec"
 )
 
 type Broker struct {
@@ -77,7 +79,18 @@ func (b *Broker) Provision(ctx context.Context, instanceID string, details broke
 		}
 	}
 
-	// TODO
+	servicePlan, ok := b.config.Catalog.FindServicePlan(details.ServiceID, details.PlanID)
+	if !ok {
+		return provisionedServiceSpec, fmt.Errorf("Plan `%s` for Service `%s` not found in Catalog", details.PlanID, details.ServiceID)
+	}
+
+	if err := b.helmClient.Install(instanceID, servicePlan.Metadata.Helm.Chart, servicePlan.Metadata.Helm.Repository, servicePlan.Metadata.Helm.Version); err != nil {
+		return provisionedServiceSpec, err
+	}
+
+	b.logger.Debug("provision", lager.Data{
+		provisionedServiceSpecLogKey: provisionedServiceSpec,
+	})
 
 	return provisionedServiceSpec, nil
 }
@@ -122,7 +135,13 @@ func (b *Broker) Deprovision(ctx context.Context, instanceID string, details bro
 		return deprovisionServiceSpec, brokerapi.ErrAsyncRequired
 	}
 
-	// TODO
+	if err := b.helmClient.Delete(instanceID); err != nil {
+		return deprovisionServiceSpec, err
+	}
+
+	b.logger.Debug("deprovision", lager.Data{
+		deprovisionServiceSpecLogKey: deprovisionServiceSpec,
+	})
 
 	return deprovisionServiceSpec, nil
 }
