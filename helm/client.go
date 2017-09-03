@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	instanceIDLogKey      = "instance-id"
-	programLogKey         = "program"
-	argumentsLogKey       = "arguments"
-	execCmdResponseLogKey = "exec-cmd-response"
+	instanceIDLogKey = "instance-id"
+	chartLogKey      = "chart"
+	repositoryLogKey = "repository"
+	versionLogKey    = "version"
 )
 
 var (
@@ -33,22 +33,46 @@ func New(config Config, logger lager.Logger) *Client {
 	}
 }
 
-func (c *Client) Install(instanceID string) error {
+func (c *Client) Install(instanceID string, chart string, repository string, version string) error {
 	c.logger.Debug("install", lager.Data{
 		instanceIDLogKey: instanceID,
+		chartLogKey:      chart,
+		repositoryLogKey: repository,
+		versionLogKey:    version,
 	})
 
-	// TODO
+	cmd := fmt.Sprintf("install %s --name %s --namespace %s", chart, c.releaseName(instanceID), c.config.DefaultNamespace)
+	if repository != "" {
+		cmd = cmd + fmt.Sprintf(" --repo %s", repository)
+	}
+	if version != "" {
+		cmd = cmd + fmt.Sprintf(" --version %s", version)
+	}
+	if _, err := c.helm(cmd); err != nil {
+		return fmt.Errorf("Error installing Helm release `%s`", c.releaseName(instanceID))
+	}
 
 	return nil
 }
 
-func (c *Client) Update(instanceID string) error {
-	c.logger.Debug("install", lager.Data{
+func (c *Client) Upgrade(instanceID string, chart string, repository string, version string) error {
+	c.logger.Debug("upgrade", lager.Data{
 		instanceIDLogKey: instanceID,
+		chartLogKey:      chart,
+		repositoryLogKey: repository,
+		versionLogKey:    version,
 	})
 
-	// TODO
+	cmd := fmt.Sprintf("upgrade %s %s --namespace %s", c.releaseName(instanceID), chart, c.config.DefaultNamespace)
+	if repository != "" {
+		cmd = cmd + fmt.Sprintf(" --repo %s", repository)
+	}
+	if version != "" {
+		cmd = cmd + fmt.Sprintf(" --version %s", version)
+	}
+	if _, err := c.helm(cmd); err != nil {
+		return fmt.Errorf("Error upgrading Helm release `%s`", c.releaseName(instanceID))
+	}
 
 	return nil
 }
@@ -58,7 +82,10 @@ func (c *Client) Delete(instanceID string) error {
 		instanceIDLogKey: instanceID,
 	})
 
-	// TODO
+	cmd := fmt.Sprintf("delete --purge %s", c.releaseName(instanceID))
+	if _, err := c.helm(cmd); err != nil {
+		return fmt.Errorf("Error deleting Helm release `%s`", c.releaseName(instanceID))
+	}
 
 	return nil
 }
