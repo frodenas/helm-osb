@@ -49,6 +49,13 @@ type ServicePlanMetadata struct {
 	DisplayName string            `json:"displayName,omitempty"`
 	Bullets     []string          `json:"bullets,omitempty"`
 	Costs       []ServicePlanCost `json:"costs,omitempty"`
+	Helm        HelmConfig        `json:"helm"`
+}
+
+type HelmConfig struct {
+	Chart      string `json:"chart"`
+	Repository string `json:"repository,omitempty"`
+	Version    string `jsob:"version,omitempty"`
 }
 
 type ServicePlanCost struct {
@@ -128,6 +135,22 @@ func (sp ServicePlan) Validate() error {
 
 	if sp.Description == "" {
 		return fmt.Errorf("Must provide a non-empty Description (%+v)", sp)
+	}
+
+	if sp.Metadata == nil {
+		return fmt.Errorf("Must provide a non-empty Helm configuration (%+v)", sp)
+	}
+
+	if err := sp.Metadata.Helm.Validate(); err != nil {
+		return fmt.Errorf("Validating Helm configuration for Service Plan `%s`: %s", sp.Name, err)
+	}
+
+	return nil
+}
+
+func (hc HelmConfig) Validate() error {
+	if hc.Chart == "" {
+		return fmt.Errorf("Must provide a non-empty Chart (%+v)", hc)
 	}
 
 	return nil

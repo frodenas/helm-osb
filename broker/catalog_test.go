@@ -21,12 +21,22 @@ var _ = Describe("Catalog", func() {
 			ID:          "fake-service-plan-1",
 			Name:        "Fake Service Plan 1 Name",
 			Description: "Fake Service Plan 1 Description",
+			Metadata: &ServicePlanMetadata{
+				Helm: HelmConfig{
+					Chart: "fake-service-plan-1-chart",
+				},
+			},
 		}
 
 		servicePlan2 = ServicePlan{
 			ID:          "fake-service-plan-2",
 			Name:        "Fake Service Plan 2 Name",
 			Description: "Fake Service Plan 2 Description",
+			Metadata: &ServicePlanMetadata{
+				Helm: HelmConfig{
+					Chart: "fake-service-plan-2-chart",
+				},
+			},
 		}
 
 		service1 = Service{
@@ -114,9 +124,13 @@ var _ = Describe("Service", func() {
 					ID:          "fake-service-plan",
 					Name:        "Fake Service Plan Name",
 					Description: "Fake Service Plan Description",
-					Metadata:    &ServicePlanMetadata{},
-					Free:        true,
-					Bindable:    true,
+					Metadata: &ServicePlanMetadata{
+						Helm: HelmConfig{
+							Chart: "fake-service-plan-chart",
+						},
+					},
+					Free:     true,
+					Bindable: true,
 				},
 			},
 		}
@@ -182,9 +196,13 @@ var _ = Describe("ServicePlan", func() {
 			ID:          "fake-service-plan",
 			Name:        "Fake Service Plan Name",
 			Description: "Fake Service Plan Description",
-			Metadata:    &ServicePlanMetadata{},
-			Free:        true,
-			Bindable:    true,
+			Metadata: &ServicePlanMetadata{
+				Helm: HelmConfig{
+					Chart: "fake-service-plan-chart",
+				},
+			},
+			Free:     true,
+			Bindable: true,
 		}
 	})
 
@@ -216,6 +234,49 @@ var _ = Describe("ServicePlan", func() {
 			err := servicePlan.Validate()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("Must provide a non-empty Description"))
+		})
+
+		It("returns error if Metadata is empty", func() {
+			servicePlan.Metadata = nil
+
+			err := servicePlan.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Must provide a non-empty Helm configuration"))
+		})
+
+		It("returns error if Plans are not valid", func() {
+			servicePlan.Metadata = &ServicePlanMetadata{}
+
+			err := servicePlan.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Validating Helm configuration for Service Plan"))
+		})
+	})
+})
+
+var _ = Describe("HelmConfig", func() {
+	var (
+		helmConfig HelmConfig
+	)
+
+	BeforeEach(func() {
+		helmConfig = HelmConfig{
+			Chart: "fake-helm-chart",
+		}
+	})
+
+	Describe("Validate", func() {
+		It("does not return error if all fields are valid", func() {
+			err := helmConfig.Validate()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns error if Chart is empty", func() {
+			helmConfig.Chart = ""
+
+			err := helmConfig.Validate()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("Must provide a non-empty Chart"))
 		})
 	})
 })
