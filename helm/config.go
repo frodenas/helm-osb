@@ -11,6 +11,7 @@ type Config struct {
 	TillerHost        string `json:"tiller_host,omitempty"`
 	TillerNamespace   string `json:"tiller_namespace,omitempty"`
 	KubeContext       string `json:"kube_context,omitempty"`
+	Home              string `json:"home,omitempty"`
 	Debug             bool   `json:"debug"`
 }
 

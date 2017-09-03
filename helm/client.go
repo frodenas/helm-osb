@@ -78,6 +78,9 @@ func (c *Client) helm(cmd string) (string, error) {
 	if c.config.KubeContext != "" {
 		args = append(args, fmt.Sprintf("--kube-context %s", c.config.KubeContext))
 	}
+	if c.config.Home != "" {
+		args = append(args, fmt.Sprintf("--home %s", c.config.Home))
+	}
 	if c.config.Debug {
 		args = append(args, "--debug")
 	}
