@@ -3,6 +3,7 @@ package helm
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"code.cloudfoundry.org/lager"
@@ -85,6 +86,46 @@ func (c *Client) Delete(instanceID string) error {
 	}
 
 	return nil
+}
+
+func (c *Client) Status(instanceID string) (string, string, error) {
+	c.logger.Debug("status-parameters", lager.Data{
+		instanceIDLogKey: instanceID,
+	})
+
+	status := "FAILED"
+	description := ""
+
+	cmd := fmt.Sprintf("status %s", c.releaseName(instanceID))
+	out, err := c.helm(cmd)
+	if err != nil {
+		return status, description, fmt.Errorf("Error getting status for Helm release `%s`", c.releaseName(instanceID))
+	}
+
+	statusRe := regexp.MustCompile(`\nSTATUS: ([A-Z]+)\n`)
+	capturedStatus := statusRe.FindStringSubmatch(out)
+	if capturedStatus != nil {
+		switch capturedStatus[1] {
+		case "PENDING_INSTALL":
+			status = "INPROGRESS"
+		case "PENDING_UPGRADE":
+			status = "INPROGRESS"
+		case "DEPLOYED":
+			status = "SUCCEEDED"
+		case "DELETING":
+			status = "INPROGRESS"
+		case "DELETED":
+			status = "SUCCEEDED"
+		}
+	}
+
+	lastDeployedRe := regexp.MustCompile(`LAST DEPLOYED: (.+)\n`)
+	capturedlastDeployed := lastDeployedRe.FindStringSubmatch(out)
+	if capturedlastDeployed != nil {
+		description = fmt.Sprintf("Last deployed: %s", capturedlastDeployed[1])
+	}
+
+	return status, description, nil
 }
 
 func (c *Client) releaseName(instanceID string) string {
