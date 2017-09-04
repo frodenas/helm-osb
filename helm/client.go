@@ -1,7 +1,6 @@
 package helm
 
 import (
-	"encoding/base64"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -14,11 +13,6 @@ const (
 	chartLogKey      = "chart"
 	repositoryLogKey = "repository"
 	versionLogKey    = "version"
-)
-
-var (
-	escaper   = strings.NewReplacer("9", "99", "-", "90", "_", "91")
-	unescaper = strings.NewReplacer("99", "9", "90", "-", "91", "_")
 )
 
 type Client struct {
@@ -91,7 +85,7 @@ func (c *Client) Delete(instanceID string) error {
 }
 
 func (c *Client) releaseName(instanceID string) string {
-	return fmt.Sprintf("%s-%s", c.config.ReleaseNamePrefix, escaper.Replace(base64.RawURLEncoding.EncodeToString([]byte(strings.Replace(instanceID, "-", "", -1)))))
+	return fmt.Sprintf("%s-%s", c.config.ReleaseNamePrefix, strings.Replace(instanceID, "-", "", -1))
 }
 
 func (c *Client) helm(cmd string) (string, error) {
