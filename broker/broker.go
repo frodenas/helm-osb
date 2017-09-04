@@ -43,13 +43,13 @@ func (b *Broker) Services(ctx context.Context) []brokerapi.Service {
 
 	services := []brokerapi.Service{}
 
-	brokerCatalog, err := json.Marshal(b.config.Catalog)
+	brokerCatalog, err := json.Marshal(b.config.Catalog.Services)
 	if err != nil {
 		b.logger.Error("marshal-error", err)
 		return services
 	}
 
-	if err = json.Unmarshal(brokerCatalog, services); err != nil {
+	if err = json.Unmarshal(brokerCatalog, &services); err != nil {
 		b.logger.Error("unmarshal-error", err)
 		return services
 	}
