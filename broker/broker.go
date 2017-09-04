@@ -201,7 +201,18 @@ func (b *Broker) LastOperation(ctx context.Context, instanceID string, operation
 
 	lastOperation := brokerapi.LastOperation{State: brokerapi.Failed}
 
-	// TODO
+	status, description, err := b.helmClient.Status(instanceID)
+	if err != nil {
+		return lastOperation, err
+	}
+
+	switch status {
+	case "SUCCEEDED":
+		lastOperation.State = brokerapi.Succeeded
+		lastOperation.Description = description
+	case "INPROGRESS":
+		lastOperation.State = brokerapi.InProgress
+	}
 
 	b.logger.Debug("last-operation-response", lager.Data{
 		responseLogKey: lastOperation,
