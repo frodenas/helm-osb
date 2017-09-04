@@ -55,7 +55,7 @@ type ServicePlanMetadata struct {
 type HelmConfig struct {
 	Chart      string `json:"chart"`
 	Repository string `json:"repository,omitempty"`
-	Version    string `jsob:"version,omitempty"`
+	Version    string `json:"version,omitempty"`
 }
 
 type ServicePlanCost struct {
