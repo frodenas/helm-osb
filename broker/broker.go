@@ -13,14 +13,13 @@ import (
 )
 
 const (
-	contextLogKey                = "context"
-	instanceIDLogKey             = "instance-id"
-	bindingIDLogKey              = "binding-id"
-	detailsLogKey                = "details"
-	asyncAllowedLogKey           = "async-allowed"
-	operationDataLogKey          = "operation-data"
-	provisionedServiceSpecLogKey = "provisioned-service-spec"
-	deprovisionServiceSpecLogKey = "deprovision-service-spec"
+	contextLogKey       = "context"
+	instanceIDLogKey    = "instance-id"
+	bindingIDLogKey     = "binding-id"
+	detailsLogKey       = "details"
+	asyncAllowedLogKey  = "async-allowed"
+	operationDataLogKey = "operation-data"
+	responseLogKey      = "response"
 )
 
 type Broker struct {
@@ -38,7 +37,7 @@ func New(config Config, helmClient *helm.Client, logger lager.Logger) *Broker {
 }
 
 func (b *Broker) Services(ctx context.Context) []brokerapi.Service {
-	b.logger.Debug("services", lager.Data{
+	b.logger.Debug("services-parameters", lager.Data{
 		contextLogKey: ctx,
 	})
 
@@ -55,11 +54,15 @@ func (b *Broker) Services(ctx context.Context) []brokerapi.Service {
 		return services
 	}
 
+	b.logger.Debug("services-response", lager.Data{
+		responseLogKey: services,
+	})
+
 	return services
 }
 
 func (b *Broker) Provision(ctx context.Context, instanceID string, details brokerapi.ProvisionDetails, asyncAllowed bool) (brokerapi.ProvisionedServiceSpec, error) {
-	b.logger.Debug("provision", lager.Data{
+	b.logger.Debug("provision-parameters", lager.Data{
 		contextLogKey:      ctx,
 		instanceIDLogKey:   instanceID,
 		detailsLogKey:      details,
@@ -88,15 +91,15 @@ func (b *Broker) Provision(ctx context.Context, instanceID string, details broke
 		return provisionedServiceSpec, err
 	}
 
-	b.logger.Debug("provision", lager.Data{
-		provisionedServiceSpecLogKey: provisionedServiceSpec,
+	b.logger.Debug("provision-response", lager.Data{
+		responseLogKey: provisionedServiceSpec,
 	})
 
 	return provisionedServiceSpec, nil
 }
 
 func (b *Broker) Update(ctx context.Context, instanceID string, details brokerapi.UpdateDetails, asyncAllowed bool) (brokerapi.UpdateServiceSpec, error) {
-	b.logger.Debug("update", lager.Data{
+	b.logger.Debug("update-parameters", lager.Data{
 		contextLogKey:      ctx,
 		instanceIDLogKey:   instanceID,
 		detailsLogKey:      details,
@@ -118,11 +121,15 @@ func (b *Broker) Update(ctx context.Context, instanceID string, details brokerap
 
 	// TODO
 
+	b.logger.Debug("update-response", lager.Data{
+		responseLogKey: updateServiceSpec,
+	})
+
 	return updateServiceSpec, nil
 }
 
 func (b *Broker) Deprovision(ctx context.Context, instanceID string, details brokerapi.DeprovisionDetails, asyncAllowed bool) (brokerapi.DeprovisionServiceSpec, error) {
-	b.logger.Debug("deprovision", lager.Data{
+	b.logger.Debug("deprovision-parameters", lager.Data{
 		contextLogKey:      ctx,
 		instanceIDLogKey:   instanceID,
 		detailsLogKey:      details,
@@ -139,15 +146,15 @@ func (b *Broker) Deprovision(ctx context.Context, instanceID string, details bro
 		return deprovisionServiceSpec, err
 	}
 
-	b.logger.Debug("deprovision", lager.Data{
-		deprovisionServiceSpecLogKey: deprovisionServiceSpec,
+	b.logger.Debug("deprovision-response", lager.Data{
+		responseLogKey: deprovisionServiceSpec,
 	})
 
 	return deprovisionServiceSpec, nil
 }
 
 func (b *Broker) Bind(ctx context.Context, instanceID, bindingID string, details brokerapi.BindDetails) (brokerapi.Binding, error) {
-	b.logger.Debug("bind", lager.Data{
+	b.logger.Debug("bind-parameters", lager.Data{
 		contextLogKey:    ctx,
 		instanceIDLogKey: instanceID,
 		bindingIDLogKey:  bindingID,
@@ -165,11 +172,15 @@ func (b *Broker) Bind(ctx context.Context, instanceID, bindingID string, details
 
 	// TODO
 
+	b.logger.Debug("bind-response", lager.Data{
+		responseLogKey: binding,
+	})
+
 	return binding, nil
 }
 
 func (b *Broker) Unbind(ctx context.Context, instanceID, bindingID string, details brokerapi.UnbindDetails) error {
-	b.logger.Debug("unbind", lager.Data{
+	b.logger.Debug("unbind-parameters", lager.Data{
 		contextLogKey:    ctx,
 		instanceIDLogKey: instanceID,
 		bindingIDLogKey:  bindingID,
@@ -182,7 +193,7 @@ func (b *Broker) Unbind(ctx context.Context, instanceID, bindingID string, detai
 }
 
 func (b *Broker) LastOperation(ctx context.Context, instanceID string, operationData string) (brokerapi.LastOperation, error) {
-	b.logger.Debug("last-operation", lager.Data{
+	b.logger.Debug("last-operation-parameters", lager.Data{
 		contextLogKey:       ctx,
 		instanceIDLogKey:    instanceID,
 		operationDataLogKey: operationData,
@@ -191,6 +202,10 @@ func (b *Broker) LastOperation(ctx context.Context, instanceID string, operation
 	lastOperation := brokerapi.LastOperation{State: brokerapi.Failed}
 
 	// TODO
+
+	b.logger.Debug("last-operation-response", lager.Data{
+		responseLogKey: lastOperation,
+	})
 
 	return lastOperation, nil
 }
