@@ -53,10 +53,13 @@ type ServicePlanMetadata struct {
 }
 
 type HelmConfig struct {
-	Chart      string `json:"chart"`
-	Repository string `json:"repository,omitempty"`
-	Version    string `json:"version,omitempty"`
+	Chart      string           `json:"chart"`
+	Repository string           `json:"repository,omitempty"`
+	Version    string           `json:"version,omitempty"`
+	Values     *HelmChartValues `json:"values"`
 }
+
+type HelmChartValues map[string]interface{}
 
 type ServicePlanCost struct {
 	Amount map[string]float64 `json:"amount,omitempty"`

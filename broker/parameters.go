@@ -1,7 +1,7 @@
 package broker
 
-type ProvisionParameters map[string]string
+type ProvisionParameters map[string]interface{}
 
-type UpdateParameters map[string]string
+type UpdateParameters map[string]interface{}
 
-type BindParameters map[string]string
+type BindParameters map[string]interface{}

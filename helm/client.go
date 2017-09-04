@@ -2,11 +2,14 @@ package helm
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 
 	"code.cloudfoundry.org/lager"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -14,6 +17,7 @@ const (
 	chartLogKey      = "chart"
 	repositoryLogKey = "repository"
 	versionLogKey    = "version"
+	valuesLogKey     = "values"
 	programLogKey    = "program"
 	argumentsLogKey  = "arguments"
 	outputLogKey     = "output"
@@ -31,12 +35,13 @@ func New(config Config, logger lager.Logger) *Client {
 	}
 }
 
-func (c *Client) InstallRelease(instanceID string, chart string, repository string, version string) error {
+func (c *Client) InstallRelease(instanceID string, chart string, repository string, version string, values map[string]interface{}) error {
 	c.logger.Debug("install-release-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 		chartLogKey:      chart,
 		repositoryLogKey: repository,
 		versionLogKey:    version,
+		valuesLogKey:     values,
 	})
 
 	cmd := fmt.Sprintf("install %s --name %s --namespace %s", chart, c.releaseName(instanceID), c.config.DefaultNamespace)
@@ -46,6 +51,25 @@ func (c *Client) InstallRelease(instanceID string, chart string, repository stri
 	if version != "" {
 		cmd = cmd + fmt.Sprintf(" --version %s", version)
 	}
+	if len(values) > 0 {
+		valuesContent, err := yaml.Marshal(values)
+		if err != nil {
+			return fmt.Errorf("Error marshalling values: %s", err)
+		}
+
+		valuesFile, err := ioutil.TempFile("", instanceID)
+		if err != nil {
+			return fmt.Errorf("Error creating temporary file: %s", err)
+		}
+		defer os.Remove(valuesFile.Name())
+
+		if _, err = valuesFile.Write([]byte(valuesContent)); err != nil {
+			return nil
+		}
+
+		cmd = cmd + " --values " + valuesFile.Name()
+	}
+
 	if _, err := c.helm(cmd); err != nil {
 		return fmt.Errorf("Error installing Helm release `%s`", c.releaseName(instanceID))
 	}

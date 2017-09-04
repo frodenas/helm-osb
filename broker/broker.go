@@ -75,19 +75,31 @@ func (b *Broker) Provision(ctx context.Context, instanceID string, details broke
 		return provisionedServiceSpec, brokerapi.ErrAsyncRequired
 	}
 
+	servicePlan, ok := b.config.Catalog.FindServicePlan(details.ServiceID, details.PlanID)
+	if !ok {
+		return provisionedServiceSpec, fmt.Errorf("Plan `%s` for Service `%s` not found in Catalog", details.PlanID, details.ServiceID)
+	}
+
 	provisionParameters := ProvisionParameters{}
+	if servicePlan.Metadata.Helm.Values != nil {
+		for k, v := range *servicePlan.Metadata.Helm.Values {
+			provisionParameters[k] = v
+		}
+	}
+
 	if b.config.AllowUserProvisionParameters {
 		if err := mapstructure.Decode(details.RawParameters, &provisionParameters); err != nil {
 			return provisionedServiceSpec, fmt.Errorf("Error parsing provision parameters: %s", err)
 		}
 	}
 
-	servicePlan, ok := b.config.Catalog.FindServicePlan(details.ServiceID, details.PlanID)
-	if !ok {
-		return provisionedServiceSpec, fmt.Errorf("Plan `%s` for Service `%s` not found in Catalog", details.PlanID, details.ServiceID)
-	}
-
-	if err := b.helmClient.InstallRelease(instanceID, servicePlan.Metadata.Helm.Chart, servicePlan.Metadata.Helm.Repository, servicePlan.Metadata.Helm.Version); err != nil {
+	err := b.helmClient.InstallRelease(
+		instanceID,
+		servicePlan.Metadata.Helm.Chart,
+		servicePlan.Metadata.Helm.Repository,
+		servicePlan.Metadata.Helm.Version,
+		provisionParameters)
+	if err != nil {
 		return provisionedServiceSpec, err
 	}
 
