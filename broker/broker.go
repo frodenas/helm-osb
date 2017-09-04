@@ -87,7 +87,7 @@ func (b *Broker) Provision(ctx context.Context, instanceID string, details broke
 		return provisionedServiceSpec, fmt.Errorf("Plan `%s` for Service `%s` not found in Catalog", details.PlanID, details.ServiceID)
 	}
 
-	if err := b.helmClient.Install(instanceID, servicePlan.Metadata.Helm.Chart, servicePlan.Metadata.Helm.Repository, servicePlan.Metadata.Helm.Version); err != nil {
+	if err := b.helmClient.InstallRelease(instanceID, servicePlan.Metadata.Helm.Chart, servicePlan.Metadata.Helm.Repository, servicePlan.Metadata.Helm.Version); err != nil {
 		return provisionedServiceSpec, err
 	}
 
@@ -142,7 +142,7 @@ func (b *Broker) Deprovision(ctx context.Context, instanceID string, details bro
 		return deprovisionServiceSpec, brokerapi.ErrAsyncRequired
 	}
 
-	if err := b.helmClient.Delete(instanceID); err != nil {
+	if err := b.helmClient.DeleteRelease(instanceID); err != nil {
 		return deprovisionServiceSpec, err
 	}
 
@@ -201,7 +201,7 @@ func (b *Broker) LastOperation(ctx context.Context, instanceID string, operation
 
 	lastOperation := brokerapi.LastOperation{State: brokerapi.Failed}
 
-	status, description, err := b.helmClient.Status(instanceID)
+	status, description, err := b.helmClient.ReleaseStatus(instanceID)
 	if err != nil {
 		return lastOperation, err
 	}

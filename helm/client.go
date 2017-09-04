@@ -31,8 +31,8 @@ func New(config Config, logger lager.Logger) *Client {
 	}
 }
 
-func (c *Client) Install(instanceID string, chart string, repository string, version string) error {
-	c.logger.Debug("install-parameters", lager.Data{
+func (c *Client) InstallRelease(instanceID string, chart string, repository string, version string) error {
+	c.logger.Debug("install-release-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 		chartLogKey:      chart,
 		repositoryLogKey: repository,
@@ -53,8 +53,8 @@ func (c *Client) Install(instanceID string, chart string, repository string, ver
 	return nil
 }
 
-func (c *Client) Upgrade(instanceID string, chart string, repository string, version string) error {
-	c.logger.Debug("upgrade-parameters", lager.Data{
+func (c *Client) UpgradeRelease(instanceID string, chart string, repository string, version string) error {
+	c.logger.Debug("upgrade-release-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 		chartLogKey:      chart,
 		repositoryLogKey: repository,
@@ -75,8 +75,8 @@ func (c *Client) Upgrade(instanceID string, chart string, repository string, ver
 	return nil
 }
 
-func (c *Client) Delete(instanceID string) error {
-	c.logger.Debug("delete-parameters", lager.Data{
+func (c *Client) DeleteRelease(instanceID string) error {
+	c.logger.Debug("delete-release-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 	})
 
@@ -88,8 +88,8 @@ func (c *Client) Delete(instanceID string) error {
 	return nil
 }
 
-func (c *Client) Status(instanceID string) (string, string, error) {
-	c.logger.Debug("status-parameters", lager.Data{
+func (c *Client) ReleaseStatus(instanceID string) (string, string, error) {
+	c.logger.Debug("release-status-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 	})
 
