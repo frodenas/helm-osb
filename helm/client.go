@@ -13,6 +13,9 @@ const (
 	chartLogKey      = "chart"
 	repositoryLogKey = "repository"
 	versionLogKey    = "version"
+	programLogKey    = "program"
+	argumentsLogKey  = "arguments"
+	outputLogKey     = "output"
 )
 
 type Client struct {
@@ -28,7 +31,7 @@ func New(config Config, logger lager.Logger) *Client {
 }
 
 func (c *Client) Install(instanceID string, chart string, repository string, version string) error {
-	c.logger.Debug("install", lager.Data{
+	c.logger.Debug("install-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 		chartLogKey:      chart,
 		repositoryLogKey: repository,
@@ -50,7 +53,7 @@ func (c *Client) Install(instanceID string, chart string, repository string, ver
 }
 
 func (c *Client) Upgrade(instanceID string, chart string, repository string, version string) error {
-	c.logger.Debug("upgrade", lager.Data{
+	c.logger.Debug("upgrade-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 		chartLogKey:      chart,
 		repositoryLogKey: repository,
@@ -72,7 +75,7 @@ func (c *Client) Upgrade(instanceID string, chart string, repository string, ver
 }
 
 func (c *Client) Delete(instanceID string) error {
-	c.logger.Debug("delete", lager.Data{
+	c.logger.Debug("delete-parameters", lager.Data{
 		instanceIDLogKey: instanceID,
 	})
 
@@ -108,22 +111,22 @@ func (c *Client) helm(cmd string) (string, error) {
 
 	args = append(args, strings.Fields(cmd)...)
 
-	c.logger.Debug("helm", lager.Data{
-		"program":   c.config.BinaryLocation,
-		"arguments": args,
+	c.logger.Debug("exec", lager.Data{
+		programLogKey:   c.config.BinaryLocation,
+		argumentsLogKey: args,
 	})
 
 	out, err := exec.Command(c.config.BinaryLocation, args...).CombinedOutput()
 	if err != nil {
-		c.logger.Error("helm", err)
-		c.logger.Debug("helm", lager.Data{
-			"output": string(out),
+		c.logger.Error("exec", err)
+		c.logger.Debug("exec", lager.Data{
+			outputLogKey: string(out),
 		})
 		return "", err
 	}
 
-	c.logger.Debug("helm", lager.Data{
-		"output": string(out),
+	c.logger.Debug("exec", lager.Data{
+		outputLogKey: string(out),
 	})
 
 	return string(out), nil
