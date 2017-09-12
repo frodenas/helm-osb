@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -43,6 +44,7 @@ type ServicePlan struct {
 	Metadata    *ServicePlanMetadata `json:"metadata,omitempty"`
 	Free        bool                 `json:"free,omitempty"`
 	Bindable    bool                 `json:"bindable,omitempty"`
+	Schemas     *ServicePlanSchemas  `json:"schemas,omitempty"`
 }
 
 type ServicePlanMetadata struct {
@@ -50,6 +52,28 @@ type ServicePlanMetadata struct {
 	Bullets     []string          `json:"bullets,omitempty"`
 	Costs       []ServicePlanCost `json:"costs,omitempty"`
 	Helm        HelmConfig        `json:"helm"`
+}
+
+type ServicePlanSchemas struct {
+	ServiceInstance *ServiceInstanceSchema `json:"service_instance,omitempty"`
+	ServiceBinding  *ServiceBindingSchema  `json:"service_binding,omitempty"`
+}
+
+type ServiceInstanceSchema struct {
+	CreateSchema CreateSchema `json:"create,omitempty"`
+	UpdateSchema UpdateSchema `json:"update,omitempty"`
+}
+
+type ServiceBindingSchema struct {
+	CreateSchema CreateSchema `json:"create,omitempty"`
+}
+
+type CreateSchema struct {
+	Parameters json.RawMessage `json:"parameters,omitempty"`
+}
+
+type UpdateSchema struct {
+	Parameters json.RawMessage `json:"parameters,omitempty"`
 }
 
 type HelmConfig struct {
